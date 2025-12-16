@@ -1,15 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authApi } from '../lib/api';
-
-interface User {
-    id: string;
-    email: string;
-    name?: string;
-}
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { authApi, type AuthUser } from '../lib/api';
 
 interface AuthContextType {
-    user: User | null;
-    token: string | null;
+    user: AuthUser | null;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
@@ -26,31 +19,22 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Check for existing token on mount
+    // Check for existing session on mount
     useEffect(() => {
-        const storedToken = localStorage.getItem('cms_token');
-        if (storedToken) {
-            verifyToken(storedToken);
-        } else {
-            setIsLoading(false);
-        }
+        checkExistingSession();
     }, []);
 
-    const verifyToken = async (tokenToVerify: string) => {
+    const checkExistingSession = async () => {
         try {
-            const result = await authApi.verify(tokenToVerify);
-            if (result.success && result.valid) {
-                setToken(tokenToVerify);
+            const result = await authApi.getCurrentUser();
+            if (result.success && result.user) {
                 setUser(result.user);
-            } else {
-                localStorage.removeItem('cms_token');
             }
         } catch {
-            localStorage.removeItem('cms_token');
+            // No existing session
         } finally {
             setIsLoading(false);
         }
@@ -59,10 +43,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = async (email: string, password: string) => {
         try {
             const result = await authApi.login(email, password);
-            if (result.success && result.token) {
-                setToken(result.token);
+            if (result.success && result.user) {
                 setUser(result.user);
-                localStorage.setItem('cms_token', result.token);
                 return { success: true };
             }
             return { success: false, error: result.error || 'Login failed' };
@@ -71,14 +53,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        await authApi.logout();
         setUser(null);
-        setToken(null);
-        localStorage.removeItem('cms_token');
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

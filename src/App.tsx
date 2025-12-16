@@ -2,9 +2,18 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
-import { CollectionList } from './pages/CollectionList';
-import { CollectionEditor } from './pages/CollectionEditor';
 import { DashboardLayout } from './components/DashboardLayout';
+
+// Visual Section Editors
+import { HeroEditor } from './pages/editors/HeroEditor';
+import { AboutEditor } from './pages/editors/AboutEditor';
+import { WorkEditor } from './pages/editors/WorkEditor';
+import { SkillsEditor } from './pages/editors/SkillsEditor';
+import { ExperienceEditor } from './pages/editors/ExperienceEditor';
+import { ServicesEditor } from './pages/editors/ServicesEditor';
+import { SocialLinksEditor } from './pages/editors/SocialLinksEditor';
+import { MessagesViewer } from './pages/editors/MessagesViewer';
+
 import './index.css';
 
 // Protected route wrapper
@@ -14,7 +23,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[var(--muted)]">Loading...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="spinner"></div>
+          <p className="text-[var(--muted)]">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -33,7 +45,10 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[var(--muted)]">Loading...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="spinner"></div>
+          <p className="text-[var(--muted)]">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -67,9 +82,18 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+        {/* Dashboard home */}
         <Route index element={<Dashboard />} />
-        <Route path=":collectionName" element={<CollectionList />} />
-        <Route path=":collectionName/:documentId" element={<CollectionEditor />} />
+
+        {/* Visual Section Editors */}
+        <Route path="hero" element={<HeroEditor />} />
+        <Route path="about" element={<AboutEditor />} />
+        <Route path="projects" element={<WorkEditor />} />
+        <Route path="skills" element={<SkillsEditor />} />
+        <Route path="experience" element={<ExperienceEditor />} />
+        <Route path="services" element={<ServicesEditor />} />
+        <Route path="social_links" element={<SocialLinksEditor />} />
+        <Route path="messages" element={<MessagesViewer />} />
       </Route>
 
       {/* Redirect root to dashboard */}

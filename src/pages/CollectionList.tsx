@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { crudApi, COLLECTIONS, CollectionName } from '../lib/api';
+import { crudApi, COLLECTIONS, type CollectionName } from '../lib/api';
 
 interface Document {
     $id: string;
@@ -12,7 +12,7 @@ interface Document {
 
 export const CollectionList = () => {
     const { collectionName } = useParams<{ collectionName: string }>();
-    const { token } = useAuth();
+    const { user } = useAuth();
     const [documents, setDocuments] = useState<Document[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -20,17 +20,17 @@ export const CollectionList = () => {
     const collection = COLLECTIONS.find(c => c.name === collectionName);
 
     useEffect(() => {
-        if (token && collectionName) {
+        if (user && collectionName) {
             loadDocuments();
         }
-    }, [token, collectionName]);
+    }, [user, collectionName]);
 
     const loadDocuments = async () => {
         setIsLoading(true);
         setError('');
 
         try {
-            const result = await crudApi.list(collectionName as CollectionName, token!);
+            const result = await crudApi.list(collectionName as CollectionName, user!.id);
             if (result.success) {
                 setDocuments(result.documents || []);
             } else {
@@ -47,7 +47,7 @@ export const CollectionList = () => {
         if (!confirm('Are you sure you want to delete this item?')) return;
 
         try {
-            const result = await crudApi.delete(collectionName as CollectionName, docId, token!);
+            const result = await crudApi.delete(collectionName as CollectionName, docId, user!.id);
             if (result.success) {
                 setDocuments(docs => docs.filter(d => d.$id !== docId));
             } else {

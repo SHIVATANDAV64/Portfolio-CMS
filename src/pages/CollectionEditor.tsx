@@ -1,7 +1,7 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { crudApi, COLLECTIONS, CollectionName } from '../lib/api';
+import { crudApi, COLLECTIONS, type CollectionName } from '../lib/api';
 
 // Field configurations for each collection
 const COLLECTION_FIELDS: Record<CollectionName, { name: string; type: 'text' | 'textarea' | 'url' | 'email' }[]> = {
@@ -38,13 +38,6 @@ const COLLECTION_FIELDS: Record<CollectionName, { name: string; type: 'text' | '
         { name: 'end_date', type: 'text' },
         { name: 'description', type: 'textarea' }
     ],
-    testimonials: [
-        { name: 'name', type: 'text' },
-        { name: 'role', type: 'text' },
-        { name: 'company', type: 'text' },
-        { name: 'content', type: 'textarea' },
-        { name: 'avatar', type: 'url' }
-    ],
     services: [
         { name: 'title', type: 'text' },
         { name: 'description', type: 'textarea' },
@@ -65,7 +58,7 @@ const COLLECTION_FIELDS: Record<CollectionName, { name: string; type: 'text' | '
 
 export const CollectionEditor = () => {
     const { collectionName, documentId } = useParams<{ collectionName: string; documentId?: string }>();
-    const { token } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState<Record<string, string>>({});
@@ -78,15 +71,15 @@ export const CollectionEditor = () => {
     const fields = COLLECTION_FIELDS[collectionName as CollectionName] || [];
 
     useEffect(() => {
-        if (!isNew && documentId && token) {
+        if (!isNew && documentId && user) {
             loadDocument();
         }
-    }, [documentId, token]);
+    }, [documentId, user]);
 
     const loadDocument = async () => {
         setIsLoading(true);
         try {
-            const result = await crudApi.get(collectionName as CollectionName, documentId!, token!);
+            const result = await crudApi.get(collectionName as CollectionName, documentId!, user!.id);
             if (result.success && result.document) {
                 const data: Record<string, string> = {};
                 fields.forEach(field => {
@@ -110,8 +103,8 @@ export const CollectionEditor = () => {
 
         try {
             const result = isNew
-                ? await crudApi.create(collectionName as CollectionName, formData, token!)
-                : await crudApi.update(collectionName as CollectionName, documentId!, formData, token!);
+                ? await crudApi.create(collectionName as CollectionName, formData, user!.id)
+                : await crudApi.update(collectionName as CollectionName, documentId!, formData, user!.id);
 
             if (result.success) {
                 navigate(`/dashboard/${collectionName}`);
