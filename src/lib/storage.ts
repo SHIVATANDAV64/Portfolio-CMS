@@ -1,7 +1,9 @@
-// Storage utilities for image upload to Appwrite Storage
-import { storage } from './appwrite';
-import { ID } from 'appwrite';
+// Storage utilities for image upload via Appwrite Function (JWT authenticated)
+import { functions } from './appwrite';
+import { ExecutionMethod } from 'appwrite';
+import { authApi } from './api';
 
+const FUNCTION_ID = import.meta.env.VITE_FUNCTION_CRUD_CONTENT;
 const BUCKET_ID = 'portfolio_images';
 
 export interface UploadResult {
@@ -12,7 +14,24 @@ export interface UploadResult {
 }
 
 /**
- * Upload an image file to Appwrite Storage
+ * Convert File to base64 string
+ */
+const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const result = reader.result as string;
+            // Remove the data:mime;base64, prefix
+            const base64 = result.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+    });
+};
+
+/**
+ * Upload an image file via Appwrite Function (JWT authenticated)
  */
 export const uploadImage = async (file: File): Promise<UploadResult> => {
     try {
@@ -28,17 +47,42 @@ export const uploadImage = async (file: File): Promise<UploadResult> => {
             return { success: false, error: 'File too large. Maximum size: 10MB' };
         }
 
-        // Upload file
-        const result = await storage.createFile(BUCKET_ID, ID.unique(), file);
+        // Get JWT access token
+        const accessToken = await authApi.getAccessToken();
+        if (!accessToken) {
+            return { success: false, error: 'Not authenticated' };
+        }
 
-        // Get public URL
-        const url = getImageUrl(result.$id);
+        // Convert file to base64
+        const fileData = await fileToBase64(file);
 
-        return {
-            success: true,
-            fileId: result.$id,
-            url
-        };
+        // Call function to upload
+        const execution = await functions.createExecution(
+            FUNCTION_ID,
+            JSON.stringify({
+                action: 'upload',
+                collection: 'projects', // Required by function but not used for uploads
+                accessToken,
+                fileData,
+                fileName: file.name,
+                mimeType: file.type
+            }),
+            false,
+            '/',
+            ExecutionMethod.POST
+        );
+
+        const result = JSON.parse(execution.responseBody);
+
+        if (result.success) {
+            return {
+                success: true,
+                fileId: result.fileId,
+                url: result.url
+            };
+        }
+
+        return { success: false, error: result.error || 'Upload failed' };
     } catch (err) {
         console.error('Upload error:', err);
         const error = err as { message?: string };
@@ -47,12 +91,31 @@ export const uploadImage = async (file: File): Promise<UploadResult> => {
 };
 
 /**
- * Delete an image from Appwrite Storage
+ * Delete an image via Appwrite Function (JWT authenticated)
  */
 export const deleteImage = async (fileId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-        await storage.deleteFile(BUCKET_ID, fileId);
-        return { success: true };
+        // Get JWT access token
+        const accessToken = await authApi.getAccessToken();
+        if (!accessToken) {
+            return { success: false, error: 'Not authenticated' };
+        }
+
+        const execution = await functions.createExecution(
+            FUNCTION_ID,
+            JSON.stringify({
+                action: 'deleteFile',
+                collection: 'projects', // Required by function but not used for deletes
+                accessToken,
+                fileId
+            }),
+            false,
+            '/',
+            ExecutionMethod.POST
+        );
+
+        const result = JSON.parse(execution.responseBody);
+        return result.success ? { success: true } : { success: false, error: result.error };
     } catch (err) {
         console.error('Delete error:', err);
         const error = err as { message?: string };
@@ -76,3 +139,4 @@ export const extractFileId = (url: string): string | null => {
     const match = url.match(/\/files\/([a-zA-Z0-9]+)\/view/);
     return match ? match[1] : null;
 };
+

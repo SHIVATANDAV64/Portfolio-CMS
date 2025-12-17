@@ -238,6 +238,13 @@ export const crudApi = {
             '/',
             ExecutionMethod.POST
         );
+
+        // Handle empty responses
+        if (!execution.responseBody) {
+            console.error('Empty response from function', execution);
+            return { success: false, error: 'Empty response from server' };
+        }
+
         return JSON.parse(execution.responseBody);
     },
 

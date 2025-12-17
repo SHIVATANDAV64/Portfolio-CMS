@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#F9F9F7"/>
+  <!-- Stylized S mark -->
+  <path 
+    d="M10 10 Q10 8, 16 8 Q22 8, 22 12 Q22 16, 16 16 Q10 16, 10 20 Q10 24, 16 24 Q22 24, 22 22" 
+    fill="none" 
+    stroke="#9C5C45" 
+    stroke-width="3" 
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Decorative dot -->
+  <circle cx="23" cy="9" r="2" fill="#1A1A1A"/>
+</svg>

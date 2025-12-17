@@ -1,6 +1,29 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { COLLECTIONS } from '../lib/api';
+import { COLLECTIONS, type CollectionName } from '../lib/api';
+import {
+    LayoutDashboard,
+    Home,
+    User,
+    FolderOpen,
+    Wrench,
+    Briefcase,
+    Zap,
+    Link2,
+    Mail
+} from 'lucide-react';
+
+// Icon mapping for collections
+const collectionIcons: Record<CollectionName, React.ReactNode> = {
+    hero: <Home size={18} strokeWidth={1.5} />,
+    about: <User size={18} strokeWidth={1.5} />,
+    skills: <Wrench size={18} strokeWidth={1.5} />,
+    projects: <FolderOpen size={18} strokeWidth={1.5} />,
+    experience: <Briefcase size={18} strokeWidth={1.5} />,
+    services: <Zap size={18} strokeWidth={1.5} />,
+    social_links: <Link2 size={18} strokeWidth={1.5} />,
+    messages: <Mail size={18} strokeWidth={1.5} />
+};
 
 export const DashboardLayout = () => {
     const { user, logout } = useAuth();
@@ -26,11 +49,11 @@ export const DashboardLayout = () => {
                     <Link
                         to="/dashboard"
                         className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${location.pathname === '/dashboard'
-                                ? 'bg-olive text-white'
-                                : 'text-charcoal/70 hover:bg-cream hover:text-charcoal'
+                            ? 'bg-olive text-white'
+                            : 'text-charcoal/70 hover:bg-cream hover:text-charcoal'
                             }`}
                     >
-                        <span>📊</span>
+                        <LayoutDashboard size={18} strokeWidth={1.5} />
                         <span className="font-medium">Dashboard</span>
                     </Link>
 
@@ -49,11 +72,11 @@ export const DashboardLayout = () => {
                                 key={collection.name}
                                 to={`/dashboard/${collection.name}`}
                                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${isActive
-                                        ? 'bg-olive text-white'
-                                        : 'text-charcoal/70 hover:bg-cream hover:text-charcoal'
+                                    ? 'bg-olive text-white'
+                                    : 'text-charcoal/70 hover:bg-cream hover:text-charcoal'
                                     }`}
                             >
-                                <span>{collection.icon}</span>
+                                {collectionIcons[collection.name]}
                                 <span className="font-medium">{collection.label}</span>
                             </Link>
                         );

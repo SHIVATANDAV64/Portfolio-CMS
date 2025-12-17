@@ -1,55 +1,72 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { crudApi } from '../lib/api';
+import {
+    Home,
+    User,
+    FolderOpen,
+    Wrench,
+    Briefcase,
+    Zap,
+    Link2,
+    Mail
+} from 'lucide-react';
 
-const sections = [
+interface Section {
+    name: string;
+    label: string;
+    icon: ReactNode;
+    description: string;
+}
+
+const sections: Section[] = [
     {
         name: 'hero',
         label: 'Hero Section',
-        icon: '🏠',
+        icon: <Home size={28} strokeWidth={1.5} />,
         description: 'Landing page title, subtitle, and call-to-action'
     },
     {
         name: 'about',
         label: 'About',
-        icon: '👤',
+        icon: <User size={28} strokeWidth={1.5} />,
         description: 'Your story, skills, and profile image'
     },
     {
         name: 'projects',
         label: 'Projects',
-        icon: '📁',
+        icon: <FolderOpen size={28} strokeWidth={1.5} />,
         description: 'Portfolio work showcase'
     },
     {
         name: 'skills',
         label: 'Skills',
-        icon: '🛠️',
+        icon: <Wrench size={28} strokeWidth={1.5} />,
         description: 'Tech stack and expertise'
     },
     {
         name: 'experience',
         label: 'Experience',
-        icon: '💼',
+        icon: <Briefcase size={28} strokeWidth={1.5} />,
         description: 'Work history timeline'
     },
     {
         name: 'services',
         label: 'Services',
-        icon: '⚡',
+        icon: <Zap size={28} strokeWidth={1.5} />,
         description: 'Services you offer'
     },
     {
         name: 'social_links',
         label: 'Social Links',
-        icon: '🔗',
+        icon: <Link2 size={28} strokeWidth={1.5} />,
         description: 'Social media profiles'
     },
     {
         name: 'messages',
         label: 'Messages',
-        icon: '📧',
+        icon: <Mail size={28} strokeWidth={1.5} />,
         description: 'Contact form submissions'
     }
 ];
@@ -119,9 +136,9 @@ export const Dashboard = () => {
                         className="card card-interactive group"
                     >
                         <div className="flex items-start justify-between mb-4">
-                            <span className="text-4xl group-hover:scale-110 transition-transform">
+                            <div className="text-[var(--olive)] group-hover:scale-110 transition-transform">
                                 {section.icon}
-                            </span>
+                            </div>
                             <svg
                                 className="w-5 h-5 text-[var(--muted)] group-hover:text-[var(--olive)] group-hover:translate-x-1 transition-all"
                                 fill="none"
